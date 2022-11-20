@@ -1,0 +1,59 @@
+---
+
+- name: Generate a list of clients to revoke
+  set_fact:
+      client_list: "{{ CLIENT_NAME.split(',') }}"
+
+- name: Revoking client from  openvpn server
+  shell: |
+    cd /etc/openvpn/server/easy-rsa/
+    ./easyrsa --batch revoke "{{ item }}" 
+  with_items:
+    
+    - "{{ client_list }}"
+  register: output
+  failed_when: "'not a valid' in output.stderr"
+  ignore_errors: false
+
+- name: Removing client's UDP .ovpn files from /etc/openvpn/client directory
+  file:
+    path: "/etc/openvpn/client/{{ item }}.ovpn"
+    state: absent 
+  with_items:
+    - "{{ client_list }}"
+
+- name: Removing client's TCP.ovpn files from /etc/openvpn/client directory
+  file:
+    path: "/etc/openvpn/client/{{ item }}-TCP443.ovpn"
+    state: absent 
+  with_items:
+    - "{{ client_list }}"
+
+#- name: Check if user exists on the database
+#  fail:
+#     msg: "USERNAME DOES NOT EXIST ON THE DATABASE ! PLEASE PROVIDE CORRECT USERNAME !!"
+#  when: "'not a valid' in item.stderr "
+#  loop: "{{ output.results }}"
+
+- name: Generate new CRL key
+  shell: |
+    cd /etc/openvpn/server/easy-rsa/
+    EASYRSA_CRL_DAYS=3650 ./easyrsa gen-crl
+
+- name: Delete existing CRL key
+  file:
+    path: /etc/openvpn/server/crl.pem
+    state: absent
+
+- name: Copy new CRL key from /etc/openvpn/server/easy-rsa/pki/ to /etc/openvpn/server/ 
+  copy:
+    src: /etc/openvpn/server/easy-rsa/pki/crl.pem 
+    dest: /etc/openvpn/server/crl.pem
+    remote_src: true
+
+- name: Change onwership of CRL key to nobody
+  file:
+    path: /etc/openvpn/server/crl.pem
+    owner: nobody
+    group: nobody
+    mode: '0644'

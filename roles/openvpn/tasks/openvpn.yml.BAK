@@ -1,0 +1,88 @@
+---
+
+- name: Install OpenVPN package provided by EPEL repository
+  yum:
+    name:
+      - openvpn
+    state: present
+  when: ansible_distribution == "CentOS" and ansible_distribution_major_version|int >=7
+
+- name: Update openvpn config files
+  template: src=../templates/{{ item }} dest=/etc/openvpn/server/ owner=root group=root mode=644
+  with_items:
+    - client-common.txt
+    - client-common-tcp-443.txt
+    - tcp443.conf
+    - udp8801.conf
+
+- name: Copy OpenVPN server config files
+  copy: src=../files/{{ item }} dest=/etc/openvpn/server/ owner=root group=root mode=644
+  with_items:
+    - dh.pem
+
+- name: Create directory for Easy-RSA
+  file: path=/etc/openvpn/server/easy-rsa/ state=directory recurse=yes owner=root group=root mode=700
+
+- name: Copy EasyRSA file
+  copy: src=../files/{{ item }} dest=/etc/openvpn/server/easy-rsa/ owner=root group=root mode=644
+  with_items:
+    - EasyRSA-3.0.8.tgz
+
+- name: Extract Easy RSA file
+  shell: tar -xzvf /etc/openvpn/server/easy-rsa/EasyRSA-3.0.8.tgz -C /etc/openvpn/server/easy-rsa/ --strip-components 1  
+
+- name: Create the PKI, set up the CA and the server certificates
+  shell: |
+    cd /etc/openvpn/server/easy-rsa/
+    ./easyrsa init-pki
+    ./easyrsa --batch build-ca nopass
+    EASYRSA_CERT_EXPIRE=3650 ./easyrsa build-server-full server nopass
+    EASYRSA_CRL_DAYS=3650 ./easyrsa gen-crl
+
+- name: Copy certificates and key files to openvpn directory
+  shell: |
+    cd /etc/openvpn/server/easy-rsa/
+    cp pki/ca.crt pki/private/ca.key pki/issued/server.crt pki/private/server.key pki/crl.pem /etc/openvpn/server
+- name: Give nobody permission to crl.pem file
+  shell: chown nobody:nobody /etc/openvpn/server/crl.pem   
+
+- name: Give execute permission on openvpn directory
+  shell: chmod o+x /etc/openvpn/server/
+
+- name:  Generate key for tls-crypt
+  shell: openvpn --genkey --secret /etc/openvpn/server/tc.key
+
+- name: Enable openVPN service
+  shell: |
+    systemctl disable --now openvpn-server@server.service
+    systemctl enable --now openvpn-server@udp8801.service
+    systemctl enable --now openvpn-server@tcp443.service
+
+- name: copy slave iptables rules file
+  copy: src=../files/iptables dest=/etc/sysconfig/iptables owner=root group=root mode=600
+  ignore_errors: yes
+
+- name: Save iptable rules /etc/sysconfig/iptables
+  shell: /sbin/iptables-save
+
+- name: Enable iptable service
+  shell: systemctl enable iptables 
+
+- name: Update openvpn-iptables.service
+  template: src=../templates/{{ item }} dest=/etc/systemd/system/ owner=root group=root mode=644
+  with_items:
+    - openvpn-iptables.service
+
+- name: Enable Openvpn iptables service
+  shell: systemctl enable --now openvpn-iptables.service
+
+- name: Restart iptables
+  shell: service iptables restart
+ 
+- name: Enable ipv4 forwarding
+  shell: echo 'net.ipv4.ip_forward=1' > /etc/sysctl.d/99-openvpn-forward.conf
+
+- name: Enable ipv4 forwarding without reboot
+  shell: echo 1 > /proc/sys/net/ipv4/ip_forward
+
+ 

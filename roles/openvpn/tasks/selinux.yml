@@ -1,0 +1,11 @@
+- name: disable selinux on boot
+  selinux: state=disabled
+  no_log: True
+  ignore_errors: yes
+  failed_when: false
+
+- name: disable selinux for this session
+  command: setenforce 0
+  no_log: True
+  ignore_errors: yes
+  failed_when: false

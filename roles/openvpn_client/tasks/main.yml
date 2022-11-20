@@ -1,0 +1,49 @@
+---
+
+- name: Generate client array list
+  set_fact:
+      client_list: "{{ CLIENT_NAME.split(',') }}"
+
+- name: Create Key and Certificates for clients
+  shell: |
+    cd /etc/openvpn/server/easy-rsa/
+    EASYRSA_CERT_EXPIRE=3650 ./easyrsa build-client-full "{{ item }}" nopass
+  with_items:
+    
+    - "{{ client_list }}"
+
+- name: Generate custom UDP 8801 client.ovpn file
+  shell: |
+    { cat /etc/openvpn/server/client-common.txt ;
+    echo "<ca>" ;
+    cat /etc/openvpn/server/easy-rsa/pki/ca.crt ;
+    echo "</ca>" ;
+    echo "<cert>" ;
+    sed -ne '/BEGIN CERTIFICATE/,$ p' /etc/openvpn/server/easy-rsa/pki/issued/"{{ item }}".crt ;
+    echo "</cert>" ;
+    echo "<key>" ;
+    cat /etc/openvpn/server/easy-rsa/pki/private/"{{ item }}".key ;
+    echo "</key>" ;
+    echo "<tls-crypt>" ;
+    sed -ne '/BEGIN OpenVPN Static key/,$ p' /etc/openvpn/server/tc.key ;
+    echo "</tls-crypt>" ;} > /etc/openvpn/client/"{{ item }}".ovpn
+  with_items:
+    - "{{ client_list }}"
+ 
+- name: Generate custom TCP 433 client.ovpn file
+  shell: |
+    { cat /etc/openvpn/server/client-common-tcp-443.txt ;
+    echo "<ca>" ;
+    cat /etc/openvpn/server/easy-rsa/pki/ca.crt ;
+    echo "</ca>" ;
+    echo "<cert>" ;
+    sed -ne '/BEGIN CERTIFICATE/,$ p' /etc/openvpn/server/easy-rsa/pki/issued/"{{ item }}".crt ;
+    echo "</cert>" ;
+    echo "<key>" ;
+    cat /etc/openvpn/server/easy-rsa/pki/private/"{{ item }}".key ;
+    echo "</key>" ;
+    echo "<tls-crypt>" ;
+    sed -ne '/BEGIN OpenVPN Static key/,$ p' /etc/openvpn/server/tc.key ;
+    echo "</tls-crypt>" ;} > /etc/openvpn/client/"{{ item }}"-TCP443.ovpn
+  with_items:
+    - "{{ client_list }}"

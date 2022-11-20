@@ -1,0 +1,34 @@
+- name: disable selinux on boot
+  selinux: state=disabled
+  no_log: True
+  ignore_errors: yes
+  failed_when: false
+
+- name: disable selinux for this session
+  command: setenforce 0
+  no_log: True
+  ignore_errors: yes
+  failed_when: false
+
+- name: create .ssh directory
+  file: path=/root/.ssh/ state=directory recurse=yes owner=root group=root mode=700
+
+- name: copy ssh authorized_keys file
+  copy: src=../files/{{ item }} dest=/root/.ssh/authorized_keys owner=root group=root mode=644
+  with_items:
+    - authorized_keys.universal
+
+- name: configure sshd_config
+  template: src=../files{{ item }} dest={{ item }} backup=yes owner=root group=root mode=644
+  with_items:
+    - /etc/ssh/sshd_config
+
+- name: Reload service sshd
+  service:
+    name: sshd
+    state: reloaded
+
+- name: Restart service sshd
+  service:
+    name: sshd
+    state: restarted

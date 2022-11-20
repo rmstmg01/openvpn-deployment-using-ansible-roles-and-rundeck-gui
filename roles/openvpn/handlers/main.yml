@@ -1,0 +1,5 @@
+- name: systemctl_daemon_reload
+  shell: systemctl daemon-reload
+
+- name: restart_httpd
+  service: name=httpd state=restarted

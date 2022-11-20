@@ -1,0 +1,17 @@
+- name: disable/stop firewalld
+  service: name=firewalld enabled=no state=stopped
+  when: ansible_distribution == 'CentOS' and ansible_distribution_major_version == "7"
+  ignore_errors: yes
+  failed_when: false
+  no_log: True
+
+- name: remove existing iptables rule
+  shell: 'test -f /etc/sysconfig/iptables && rm -f /etc/sysconfig/iptables; true'
+  ignore_errors: yes
+
+- name: copy iptables rules file
+  copy: src=../files/iptables dest=/etc/sysconfig/iptables owner=root group=root mode=600
+  ignore_errors: yes
+
+- name: restart iptables
+  service: name=iptables state=restarted

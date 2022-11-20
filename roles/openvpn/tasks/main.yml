@@ -1,0 +1,8 @@
+#
+# Perform common openvpn server setup such as setup hostname, iptables, selinux, openvpn
+#
+- include: key.yml
+- include: hostname.yml
+- include: packages.yml
+- include: gdns.yml
+- include: openvpn.yml

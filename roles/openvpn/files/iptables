@@ -1,0 +1,23 @@
+*filter
+:INPUT DROP [0:0]
+:FORWARD ACCEPT [0:0]
+:OUTPUT ACCEPT [21:1860]
+:LOGGING - [0:0]
+-A INPUT -i lo -j ACCEPT
+-A INPUT -m state --state RELATED,ESTABLISHED -j ACCEPT
+-A INPUT -p tcp -m tcp --dport 9876 -j ACCEPT
+-A INPUT -p tcp -m tcp --dport 9822 -j ACCEPT
+-A INPUT -p tcp -m tcp --dport 22 -j ACCEPT
+-A INPUT -p tcp -m tcp --dport 5666 -j ACCEPT
+-A INPUT -p tcp -m tcp --dport 199 -j ACCEPT
+-A INPUT -p tcp -m tcp --dport 8443 -j ACCEPT
+-A INPUT -p icmp -m icmp --icmp-type 8 -j ACCEPT
+-A INPUT -j LOGGING
+-A OUTPUT -o lo -j ACCEPT
+-A OUTPUT -m state --state RELATED,ESTABLISHED -j ACCEPT
+-A OUTPUT -p tcp -m tcp --dport 25 -j DROP
+-A OUTPUT -p tcp -m tcp --dport 465 -j DROP
+-A OUTPUT -p tcp -m tcp --dport 587 -j DROP
+-A LOGGING -m limit --limit 2/min -j LOG --log-prefix "IPTables-Dropped: "
+-A LOGGING -j DROP
+COMMIT

@@ -1,0 +1,24 @@
+[Unit]
+Wants=network-online.target
+After=network.target network-online.target iptables.service
+Requires=network.target network-online.target iptables.service
+PartOf=iptables.service
+[Service]
+Type=oneshot
+ExecStart=/usr/sbin/iptables -t nat -A POSTROUTING -s 10.8.0.0/24 ! -d 10.8.0.0/24 -j SNAT --to {{ ansible_default_ipv4.address }}
+ExecStart=/usr/sbin/iptables -I INPUT -p udp --dport 8801 -j ACCEPT
+ExecStart=/usr/sbin/iptables -I FORWARD -s 10.8.0.0/24 -j ACCEPT
+ExecStart=/usr/sbin/iptables -t nat -A POSTROUTING -s 10.9.0.0/24 ! -d 10.9.0.0/24 -j SNAT --to {{ ansible_default_ipv4.address }}
+ExecStart=/usr/sbin/iptables -I INPUT -p tcp --dport 443 -j ACCEPT
+ExecStart=/usr/sbin/iptables -I FORWARD -s 10.9.0.0/24 -j ACCEPT
+ExecStart=/usr/sbin/iptables -I FORWARD -m state --state RELATED,ESTABLISHED -j ACCEPT
+ExecStop=/usr/sbin/iptables -t nat -D POSTROUTING -s 10.8.0.0/24 ! -d 10.8.0.0/24 -j SNAT --to {{ ansible_default_ipv4.address }}
+ExecStop=/usr/sbin/iptables -D INPUT -p udp --dport 8801 -j ACCEPT
+ExecStop=/usr/sbin/iptables -D FORWARD -s 10.8.0.0/24 -j ACCEPT
+ExecStop=/usr/sbin/iptables -t nat -D POSTROUTING -s 10.9.0.0/24 ! -d 10.9.0.0/24 -j SNAT --to {{ ansible_default_ipv4.address }}
+ExecStop=/usr/sbin/iptables -D INPUT -p tcp --dport 443 -j ACCEPT
+ExecStop=/usr/sbin/iptables -D FORWARD -s 10.9.0.0/24 -j ACCEPT
+ExecStop=/usr/sbin/iptables -D FORWARD -m state --state RELATED,ESTABLISHED -j ACCEPT
+RemainAfterExit=yes
+[Install]
+WantedBy=multi-user.target

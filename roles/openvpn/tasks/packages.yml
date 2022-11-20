@@ -1,0 +1,19 @@
+---
+- name: Install common packages
+  yum:
+    name:
+      - tar
+      - epel-release
+      - wget
+      - openssl
+      - ca-certificates
+      - policycoreutils-python
+      - iptables-services
+
+    state: present
+  when: ansible_distribution == "CentOS" and ansible_distribution_major_version|int >=7
+
+#- name: Upgrade all packages
+#  yum: name=* state=latest
+#  when: ansible_distribution == "CentOS"
+

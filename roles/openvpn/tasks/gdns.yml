@@ -1,0 +1,8 @@
+# This task configures google public DNS servers for slave
+- name: set google public DNS servers in /etc/resolv.conf and enable immutable flag
+  shell: echo -e 'nameserver 8.8.8.8\nnameserver 8.8.4.4' > /etc/resolv.conf; chattr +i /etc/resolv.conf
+  ignore_errors: yes
+
+- name: enable google public DNS servers on boot
+  shell: grep -q '# PUBLIC GDNS' /etc/rc.local || echo -e "# PUBLIC GDNS\necho -e 'nameserver 8.8.8.8\\\nnameserver 8.8.4.4' > /etc/resolv.conf" >> /etc/rc.local
+  ignore_errors: yes
