@@ -1,8 +1,8 @@
-# Openvpn Server deployment using ansible roles and rundeck gui
+# Openvpn Server deployment using ansible roles and rundeck GUI
 This repository contains three different ansible roles which deploy openvpn server, openvpn clients and revokes client's access from the server.
 The ansible works in the background while rundeck acts as a frontend. I have created a project on a rundeck with three jobs which allows users to interact with a nice GUI to supply user inputs.
-You can directly use and run above roles with CLI from the ansible server but if you like to have GUI, then you can integrate Rundeck with ansible to have that feature.
-Right now openvpn server deployment works with CentOS7 VM only from any cloud provider like AWS, Digital Ocean, Linode etc but it does not support any other OS distributions.
+You can directly use and run above roles with CLI from the ansible server but if you like to have GUI, then you can use Rundeck with ansible to have that feature.
+Right now openvpn server deployment job works with CentOS7 VM only from any cloud provider like AWS, Digital Ocean, Linode etc but it does not support any other OS except CentOS7.
 
 ### 1. Ansible
 It is an open source automation tool that automates provisioning, configuration management, application deployment, orchestration, and many other IT processes. More details from [here](https://www.ansible.com/).
