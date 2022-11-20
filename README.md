@@ -11,7 +11,7 @@ It is an open source automation tool that automates provisioning, configuration 
 It is an open source automation tool with a Graphical USer Interface (GUI), Command Line Interface (CLI) and a WebAPI. It helps to deploy automation tasks across a set of nodes. More details from [here](https://www.rundeck.com/).
 ### 3. Some screenshots of openvpn rundeck deployoment jobs
 ###### Rundeck Login Console
-![rundeck-console](https://user-images.githubusercontent.com/11027110/202899181-d335eded-33db-4634-be03-2c6658118a63.jpg)
+![rundeck-console](https://user-images.githubusercontent.com/11027110/202899800-3b5239af-8a4a-4a13-870a-8eb1d7a56cd5.jpg)
 ###### Rundeck Jobs for OpenVPN Server
 ![rundeck-job-history](https://user-images.githubusercontent.com/11027110/202899534-c4277ef3-f722-4d60-97ae-b6e7011ea05f.jpg)
 ###### Rundeck User Input form for OpenVPN Server Deployment
